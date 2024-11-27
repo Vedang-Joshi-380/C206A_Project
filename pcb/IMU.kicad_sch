@@ -897,7 +897,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
 			(at 135.5852 57.15 0)
 			(effects
 				(font
@@ -967,7 +967,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
 			(at 138.1252 44.45 0)
 			(effects
 				(font
@@ -1035,7 +1035,7 @@
 				)
 			)
 		)
-		(property "Footprint" "ICM-42670-P:XDCR_ICM-42670-P"
+		(property "Footprint" "Digikey:ICM-42670-P"
 			(at 91.948 43.434 0)
 			(effects
 				(font
@@ -1247,7 +1247,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
 			(at 124.1552 44.45 0)
 			(effects
 				(font
