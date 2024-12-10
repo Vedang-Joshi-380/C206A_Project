@@ -67,6 +67,11 @@ def calculate_hand_width(landmarks):
     right = np.round(landmarks[right_point]).astype(int)
     return np.linalg.norm(left - right)
 
+def calculate_hand_angle(landmarks):
+    left = np.round(landmarks[left_point]).astype(int)
+    right = np.round(landmarks[right_point]).astype(int)
+    return -np.arctan2(right[1] - left[1], right[0] - left[0])
+
 
 
 with mp_hands.Hands(min_detection_confidence=0.5, min_tracking_confidence=0.5, max_num_hands=1) as hands:
@@ -83,18 +88,19 @@ with mp_hands.Hands(min_detection_confidence=0.5, min_tracking_confidence=0.5, m
             for hand_landmarks in results.multi_hand_landmarks:
                 landmarks = get_landmarks(hand_landmarks)
 
-                draw_landmarks(frame, landmarks, color=(255, 0, 0), thickness=5)
-
                 draw_lines(frame, landmarks, color=(0, 0, 255), thickness=3)
 
                 palm_position = calculate_palm_pose(landmarks)
                 draw_landmarks(frame, [palm_position], color=(0, 255, 0), thickness=5)
 
                 finger_positions = calculate_finger_pose(landmarks)
-                draw_landmarks(frame, finger_positions, color=(0, 255, 0), thickness=5)
+                draw_landmarks(frame, finger_positions, color=(255, 0, 0), thickness=5)
 
                 hand_width = calculate_hand_width(landmarks)
+                hand_angle = calculate_hand_angle(landmarks)
                 print([np.linalg.norm(finger_position - palm_position) / hand_width for finger_position in finger_positions])
+                print(palm_position)
+                print(hand_angle)
 
         # show frame
         cv2.imshow("Joint Angles", frame)
