@@ -17,7 +17,7 @@ def main():
     # Create the function used to call the service
     compute_ik = rospy.ServiceProxy('compute_ik', GetPositionIK)
     while not rospy.is_shutdown():
-        input('Press [ Enter ]: ')
+        #input('Press [ Enter ]: ')
         
         # Construct the request
         request = GetPositionIKRequest()
@@ -123,10 +123,10 @@ def main():
             print("Service call failed: %s"%e)
         
         # Open the right gripper
-        print('Opening...')
-        right_gripper.open()
-        rospy.sleep(1.0)
-        print('Done!')
+        #print('Opening...')
+        #right_gripper.open()
+        #rospy.sleep(1.0)
+        #print('Done!')
 
 # Python's syntax for a main() method
 if __name__ == '__main__':
