@@ -142,3 +142,4 @@ class ObjectDetector:
 
 if __name__ == '__main__':
     ObjectDetector()
+    print("Started Camera Service")

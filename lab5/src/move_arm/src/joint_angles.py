@@ -1,42 +1,65 @@
-import rospy
-from move_arm.msg import Coords
-
 import numpy as np
 import cv2
 import mediapipe as mp
-from cv_bridge import CvBridge
+import rospy
+from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import Image
-from sensor_msgs.msg import CameraInfo
-import tf
+from move_arm.msg import Coords
 
 
-class ObjectDetector:
-    def __init__(self):
-        rospy.init_node('object_detector', anonymous=True)
+bridge = CvBridge()
 
-        self.bridge = CvBridge()
+def image_callback(img_msg):
+    try:
+        cv_image = bridge.imgmsg_to_cv2(img_msg, "passthrough")
+    except CvBridgeError as e:
+        rospy.logerr("CvBridge Error: {0}".format(e))
+    
+    # Process the cv_image (e.g., display it)
+    cv_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
 
-        self.cv_color_image = None
-        self.cv_depth_image = None
+    with mp_hands.Hands(min_detection_confidence=0.25, min_tracking_confidence=0.25, max_num_hands=1) as hands:
+        frame = cv_image
 
-        self.color_image_sub = rospy.Subscriber("/camera/color/image_raw", Image, self.color_image_callback)
+        # get hands
+        results = hands.process(frame)
 
-        self.fx = None
-        self.fy = None
-        self.cx = None
-        self.cy = None
+        if results.multi_hand_landmarks:
+            # get hand landmarks from multi hand landmarks
+            for hand_landmarks in results.multi_hand_landmarks:
+                landmarks = get_landmarks(hand_landmarks)
 
-        self.camera_info_sub = rospy.Subscriber("/camera/color/camera_info", CameraInfo, self.camera_info_callback)
+                draw_lines(frame, landmarks, color=(0, 0, 255), thickness=3)
 
-        self.tf_listener = tf.TransformListener()  # Create a TransformListener object
+                palm_position = calculate_palm_pose(landmarks)
+                draw_landmarks(frame, [palm_position], color=(0, 255, 0), thickness=5)
 
-        self.point_pub = rospy.Publisher("goal_point", Point, queue_size=10)
-        self.image_pub = rospy.Publisher('detected_cup', Image, queue_size=10)
+                finger_positions = calculate_finger_pose(landmarks)
+                draw_landmarks(frame, finger_positions, color=(255, 0, 0), thickness=5)
 
-        rospy.spin()
-if __name__ == '__main__':
-    ObjectDetector()
+                hand_width = calculate_hand_width(landmarks)
+                hand_angle = calculate_hand_angle(landmarks)
+                print([np.linalg.norm(finger_position - palm_position) / hand_width for finger_position in finger_positions])
+                print(palm_position)
+                print(hand_angle)
 
+                # r = rospy.Rate(10)
+                coords = Coords() 
+                # Publish our string to the 'chatter_talk' topic
+                coords.y = palm_position[0]
+                coords.z = palm_position[1]
+                coords.theta = hand_angle
+                print("Y: \"%s\"" % coords.y + ", Z:  \"%s\"" % coords.z + ", theta:  \"%s\"" % coords.theta)
+                pub.publish(coords)
+                # Use our rate object to sleep until it is time to publish again
+                # r.sleep()
+
+    cv2.imshow("Image Window", cv_image)
+    cv2.waitKey(3)  # Needed to display the image
+
+image_topic = "/camera/color/image_raw" # Replace with your actual topic name
+image_subscriber = rospy.Subscriber(image_topic, Image, image_callback)
+pub = rospy.Publisher('user_messages', Coords, queue_size=10)
 
 # initialize variables
 mp_hands = mp.solutions.hands
@@ -55,20 +78,8 @@ left_point = 5
 right_point = 17
 
 
-
-# webcam input
-cv2.namedWindow("Joint Angles")
-cap = cv2.VideoCapture(0)
-
-ret, frame = cap.read()
-width = len(frame[0])
-height = len(frame)
-fps = 25
-
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
-cap.set(cv2.CAP_PROP_FPS, fps)
-
+width = 424
+height = 240
 
 
 def get_landmarks(hand_landmarks):
@@ -106,62 +117,12 @@ def calculate_hand_angle(landmarks):
     right = np.round(landmarks[right_point]).astype(int)
     return -np.arctan2(right[1] - left[1], right[0] - left[0])
 
-def talker():
-    pub = rospy.Publisher('user_messages', Coords, queue_size=10)
-    r = rospy.Rate(10) # 10hz
-    
-    while not rospy.is_shutdown():
-        with mp_hands.Hands(min_detection_confidence=0.5, min_tracking_confidence=0.5, max_num_hands=1) as hands:
-            while cap.isOpened():
-                # get frame
-                ret, frame = cap.read()
-                if not ret: break
 
-                # get hands
-                results = hands.process(frame)
 
-                if results.multi_hand_landmarks:
-                    # get hand landmarks from multi hand landmarks
-                    for hand_landmarks in results.multi_hand_landmarks:
-                        landmarks = get_landmarks(hand_landmarks)
-
-                        draw_lines(frame, landmarks, color=(0, 0, 255), thickness=3)
-
-                        palm_position = calculate_palm_pose(landmarks)
-                        draw_landmarks(frame, [palm_position], color=(0, 255, 0), thickness=5)
-
-                        finger_positions = calculate_finger_pose(landmarks)
-                        draw_landmarks(frame, finger_positions, color=(255, 0, 0), thickness=5)
-
-                        hand_width = calculate_hand_width(landmarks)
-                        hand_angle = calculate_hand_angle(landmarks)
-                        print([np.linalg.norm(finger_position - palm_position) / hand_width for finger_position in finger_positions])
-
-                        coords = Coords()
-                        coords.y = palm_position[0]
-                        coords.z = palm_position[1]
-                        coords.theta = hand_angle
-                        pub.publish(coords)
-
-                # show frame
-                cv2.imshow("Joint Angles", frame)
-                if cv2.waitKey(1) == ord('q'):
-                    break
-
-                r.sleep()
-
-cap.release()
-cv2.destroyAllWindows()
-
-# This is Python's syntax for a main() method, which is run by default when
-# exectued in the shell
 if __name__ == '__main__':
-
-    # Run this program as a new node in the ROS computation graph called /talker.
-    rospy.init_node('talker', anonymous=True)
-
-    # Check if the node has received a signal to shut down. If not, run the
-    # talker method.
+    rospy.init_node('image_listener', anonymous=True)
     try:
-        talker()
-    except rospy.ROSInterruptException: pass
+        rospy.spin()
+    except KeyboardInterrupt:
+        print("Shutting down")
+    cv2.destroyAllWindows()
