@@ -1,0 +1,8 @@
+prefix=/home/cc/ee106a/fa24/class/ee106a-abr/c206a_proj/lab5/devel
+
+Name: move_arm
+Description: Description of move_arm
+Version: 0.0.0
+Cflags: -I/home/cc/ee106a/fa24/class/ee106a-abr/c206a_proj/lab5/devel/include
+Libs: -L${prefix}/lib 
+Requires: intera_interface rospy std_msgs message_runtime
