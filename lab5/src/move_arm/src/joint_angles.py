@@ -46,8 +46,8 @@ def image_callback(img_msg):
                 # r = rospy.Rate(10)
                 coords = Coords() 
                 # Publish our string to the 'chatter_talk' topic
-                coords.y = palm_position[0]
-                coords.z = palm_position[1]
+                coords.y = palm_position[0] / width
+                coords.z = palm_position[1] / height
                 coords.theta = hand_angle
                 print("Y: \"%s\"" % coords.y + ", Z:  \"%s\"" % coords.z + ", theta:  \"%s\"" % coords.theta)
                 pub.publish(coords)
