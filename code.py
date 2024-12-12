@@ -26,7 +26,7 @@ right_point = 17
 
 # webcam input
 cv2.namedWindow("Joint Angles")
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(6)
 
 ret, frame = cap.read()
 width = len(frame[0])
@@ -40,7 +40,7 @@ cap.set(cv2.CAP_PROP_FPS, fps)
 
 
 # serial output
-s = serial.Serial('/dev/tty.usbmodem1101', 115200)  # Adjust port and baud rate accordingly
+s = serial.Serial('/dev/ttyACM0', 115200)  # Adjust port and baud rate accordingly
 
 
 
