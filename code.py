@@ -18,7 +18,14 @@ finger_edges = [[0, 1], [1, 2], [2, 3], [3, 4],
 
 palm_points = [0, 1, 5, 9, 13, 17]
 finger_points = [[2, 3, 4], [6, 7, 8], [10, 11, 12], [14, 15, 16], [18, 19, 20]]
-finger_lengths = [1.19, 1.47, 1.62, 1.37, 1.31]
+harris_finger_lengths = [1.19, 1.47, 1.62, 1.37, 1.31]
+harris_fist_lengths = [0.74, 0.79, 0.56, 0.50, 0.65]
+ranjini_finger_lengths = [1.25, 1.50, 1.52, 1.40, 1.25]
+jaden_finger_lengths = [1.20, 1.47, 1.54, 1.44, 1.32]
+vedang_finger_lengths = [0, 0, 0, 0, 0]
+num_iters = 0
+finger_lengths = harris_finger_lengths
+fist_lengths = harris_fist_lengths
 left_point = 5
 right_point = 17
 
@@ -107,7 +114,7 @@ with mp_hands.Hands(min_detection_confidence=0.5, min_tracking_confidence=0.5, m
                 hand_angle = calculate_hand_angle(landmarks)
 
                 joint_distances = [np.linalg.norm(finger_position - palm_position) / hand_width for finger_position in finger_positions]
-                joint_angles = [round(joint_distances[i] / finger_lengths[i], 2) for i in range(5)]
+                joint_angles = [round((joint_distances[i] - fist_lengths[i]) / (finger_lengths[i] - fist_lengths[i]), 2) for i in range(5)]
                 joint_angles_str = str(joint_angles[0]) + ", " + str(joint_angles[1]) + ", " + str(joint_angles[2]) + ", " + str(joint_angles[3]) + ", " + str(joint_angles[4]) + "\n"
 
                 print(joint_angles_str)
